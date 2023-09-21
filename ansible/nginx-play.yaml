@@ -1,0 +1,17 @@
+name: playbook for docker compose
+hosts: all
+tasks:
+  
+- name: copy docker-compose.yml
+  copy:
+    src: app/
+    dest: tmp/
+
+- name: test docker-compose
+  docker_compose:
+    project_name: my nginx project
+    definition:
+      version: "3.7"
+      services: 
+        app: 
+          image: nginx:latest

@@ -13,25 +13,12 @@
       copy:
         src: docker-compose.yml
         dest: /etc/traefik/docker-compose.yml
-
     
-    - name: Create Docker network if it doesn't exist
-      command: docker network create web
-      ignore_errors: true
+    # - name: Create Docker network if it doesn't exist
+    #   command: docker network create web
+    #   ignore_errors: true
 
-
-    - name: Ensure Traefik container is running
-      docker_container:
-        name: traefik
-        image: traefik:v2.5
-        state: started
-        restart_policy: always
-        command: /entrypoint.sh
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-        networks:
-          - name: web
-            aliases:
-              - traefik
-        published_ports:
-          - "80:80"
+    - name: Deploy Traefik 
+      docker_compose:
+        project_name: traefik
+        project_src: /etc/traefik
