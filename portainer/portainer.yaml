@@ -1,0 +1,50 @@
+- name: Deploy
+  hosts: all
+  # become: true
+  # gather_facts: true
+  tasks:
+    # - name: Tear down existing services
+    #   docker_compose:
+    #     project_src: .
+    #     state: absent
+    - name: Create Docker network deploy if it doesn't exist
+      command: docker network create deploy
+      ignore_errors: true
+
+    - name: Create and start portainer
+      register: output
+      docker_compose:
+        project_name: portainer
+        # project_src: "{{ ansible_env.PWD }}/portainer"
+        definition:
+          version: "3.7"
+          services:
+            portainer:
+              container_name: portainer
+              image: portainer/portainer-ee:latest
+              restart: always
+              labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.portainer.rule=Host(`portainer.fugoku.pro`)"
+              # - "traefik.http.routers.portainer.tls=true"
+              # - "traefik.http.routers.portainer.tls.certresolver=letsencrypt"
+              - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+              - "traefik.http.services.portainer.loadbalancer.passhostheader=true"
+              - "traefik.docker.network=deploy"
+              ports:
+                - "8000:8000"
+                - "9000:9000"
+                - "9443:9443"
+              volumes: 
+                - /var/run/docker.sock:/var/run/docker.sock
+                - /data:/data
+              networks:
+                - deploy
+          networks:
+            deploy:
+              name: deploy
+              external: true
+          
+    - name: Show results
+      debug:
+        var: output
